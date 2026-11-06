@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">autotest</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0.010</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0.011</span>
       </span>
     </div>
 
@@ -160,7 +160,7 @@
 <span><span class="co">#&gt;    &lt;chr&gt;   &lt;chr&gt;        &lt;chr&gt;   &lt;chr&gt;     &lt;chr&gt;          &lt;chr&gt;     &lt;chr&gt;   &lt;lgl&gt;</span></span>
 <span><span class="co">#&gt;  1 warning par_is_demo… var     na.rm     &lt;NA&gt;           Check th… Exampl… TRUE </span></span>
 <span><span class="co">#&gt;  2 warning par_is_demo… var     use       &lt;NA&gt;           Check th… Exampl… TRUE </span></span>
-<span><span class="co">#&gt;  3 dummy   trivial_noi… var     x         numeric        Add triv… (Shoul… TRUE </span></span>
+<span><span class="co">#&gt;  3 dummy   int_as_nume… var     x         integer vector Integer … (Shoul… TRUE </span></span>
 <span><span class="co">#&gt;  4 dummy   vector_to_l… var     x         vector         Convert … (Shoul… TRUE </span></span>
 <span><span class="co">#&gt;  5 dummy   negate_logi… var     na.rm     single logical Negate d… (Funct… TRUE </span></span>
 <span><span class="co">#&gt;  6 dummy   subst_int_f… var     na.rm     single logical Substitu… (Funct… TRUE </span></span>
@@ -181,12 +181,12 @@
 <span><span class="co">#&gt;  1 warning    par_is_d… var     na.rm     &lt;NA&gt;           Check th… "Examp… TRUE </span></span>
 <span><span class="co">#&gt;  2 warning    par_is_d… var     use       &lt;NA&gt;           Check th… "Examp… TRUE </span></span>
 <span><span class="co">#&gt;  3 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE </span></span>
-<span><span class="co">#&gt;  4 diagnostic subst_in… var     na.rm     single logical Substitu… "(Func… TRUE </span></span>
-<span><span class="co">#&gt;  5 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE </span></span>
+<span><span class="co">#&gt;  4 diagnostic vector_t… var     y         vector         Convert … "Funct… TRUE </span></span>
+<span><span class="co">#&gt;  5 diagnostic subst_in… var     na.rm     single logical Substitu… "(Func… TRUE </span></span>
 <span><span class="co">#&gt;  6 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE </span></span>
 <span><span class="co">#&gt;  7 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE </span></span>
 <span><span class="co">#&gt;  8 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE </span></span>
-<span><span class="co">#&gt;  9 diagnostic vector_t… var     y         vector         Convert … "Funct… TRUE </span></span>
+<span><span class="co">#&gt;  9 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE </span></span>
 <span><span class="co">#&gt; 10 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE </span></span>
 <span><span class="co">#&gt; 11 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE</span></span></code></pre></div>
 <p>And only 11 of the original 21 tests produced unexpected behaviour. There were in fact only 3 kinds of tests which produced these 11 results:</p>
