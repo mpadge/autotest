@@ -3,9 +3,9 @@
 #   2. Grant access to repo read/write
 #
 # TODO on github:
-# Store all necessary variables as secrets, including passwords with secret
-# names as specified below:
-# - UNAME, EMAIL for git config
+# Store all necessary variables as repo secrets, including passwords with
+# secret names as specified below:
+# - UNAME, UEMAIL for git config
 # - CODEBERG for codeberg.org token
 # - CODEFLOW for codeflow.com token
 
@@ -31,11 +31,10 @@ jobs:
 
     - name: Git setup
       run: |
-          git config --global user.name "ropensci"
-          git config --global user.email "noreply@ropensci.org"
-          git clone https://github.com/ropensci-review-tools/autotest.git
+          git config --global user.name ${{ secrets.UNAME }}
+          git config --global user.email ${{ secrets.UEMAIL }}
           git fetch --unshallow origin
-          git remote add codeberg https://${{secrets.UNAME}}:${{secrets.CODEBERG}}@codeberg.org/ropensci-review-tools/autotest.git
+          git remote add codeberg https://${{secrets.UNAME}}:${{secrets.CODEBERG}}@codeberg.org/mpadge/autotest.git
           git push --tags codeberg main
-          git remote add codefloe https://${{secrets.UNAME}}:${{secrets.CODEFLOE}}@codefloe.com/ropensci-review-tools/autotest.git
+          git remote add codefloe https://${{secrets.UNAME}}:${{secrets.CODEFLOE}}@codefloe.com/mpadge/autotest.git
           git push --tags codefloe main

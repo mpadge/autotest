@@ -6,14 +6,14 @@
 \alias{autotest-package}
 \title{autotest: Automatic Package Testing}
 \description{
-Automatic testing of R packages by tracing function calls made in examples and tests, then systematically varying the inputs to check that functions respond sensibly.
+Automatic testing of R packages by tracing function calls made in examples and tests, then systematically varying the inputs to check that functions respond sensibly. The package is a development aid for authors submitting to the 'rOpenSci' statistical software review project ('rOpenSci' authors, 2021; \doi{10.5281/zenodo.5556756}).
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://docs.ropensci.org/autotest/}
-  \item \url{https://github.com/ropensci-review-tools/autotest}
-  \item Report bugs at \url{https://github.com/ropensci-review-tools/autotest/issues}
+  \item \url{https://mpadge.github.io/autotest/}
+  \item \url{https://github.com/mpadge/autotest}
+  \item Report bugs at \url{https://github.com/mpadge/autotest/issues}
 }
 
 }
