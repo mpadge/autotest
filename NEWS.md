@@ -1,3 +1,20 @@
+# autotest 0.2.0.00X (current dev version)
+
+## Major changes
+
+* Released on CRAN (v0.2).
+* Repository transferred to `mpadge`; URLs, README and pkgdown updated.
+- Rm 'autotest-pkgcheck-gp' vignette now that this is no longer part of rOpenSci
+
+## Minor changes
+
+* Use `fs` for all file-path manipulation, in `R/` and tests.
+* Extended test coverage.
+* Re-generated hex logo with fixed aspect ratio.
+* Added CRAN badges and install instructions to README.
+* Added pkgdown workflow.
+
+
 # autotest 0.1.0
 
 *2026-01-27 – 2026-08-31*
