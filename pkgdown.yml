@@ -1,11 +1,10 @@
-pandoc: 2.7.3
-pkgdown: 1.6.1.9001
-pkgdown_sha: 0328c6c9129896e5e2f555a864a71e6b014b5366
+pandoc: 3.8.3
+pkgdown: 2.2.1
+pkgdown_sha: ~
 articles:
-  autotest-control: articles/autotest-control.html
-  autotest: articles/autotest.html
-last_built: 2021-07-05T14:34Z
+  autotest-control: autotest-control.html
+  autotest: autotest.html
+last_built: 2026-11-06T09:18Z
 urls:
-  reference: https://docs.ropensci.org/autotest/reference
-  article: https://docs.ropensci.org/autotest/articles
-
+  reference: https://mpadge.github.io/autotest/reference
+  article: https://mpadge.github.io/autotest/articles
