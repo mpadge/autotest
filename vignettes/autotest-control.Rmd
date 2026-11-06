@@ -1,4 +1,576 @@
-os demonstrated above, these `expect_autotest_...` calls should always be
+---
+title: "Control of tests"
+author: 
+  - "Mark Padgham"
+date: "`r Sys.Date()`"
+output: 
+    html_document:
+        toc: true
+        toc_float: true
+        number_sections: false
+        theme: flatly
+    md_document:
+        variant: markdown_github
+always_allow_html: true
+vignette: >
+  %\VignetteIndexEntry{Control of tests}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set (
+    collapse = TRUE,
+    warning = TRUE,
+    message = TRUE,
+    width = 120,
+    comment = "#>",
+    fig.retina = 2
+)
+```
+
+The [first vignette](https://mpadge.github.io/autotest/articles/autotest.html)
+demonstrates the process of applying `autotest` at all stages of package
+development. This vignette provides additional information for those applying
+`autotest` to already developed packages, in particular through describing how
+tests can be selectively applied to a package. By default the
+`autotest_package()` function tests an entire package, but testing can also be
+restricted to specified functions only. This vignette will demonstrate
+application to a few functions from the [`stats`
+package](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/00Index.html),
+starting by loading the package.
+
+```{r pkg-load-fakey, eval = FALSE, echo = TRUE}
+library (autotest)
+```
+```{r pkg-lod, eval = TRUE, echo = FALSE, message = FALSE}
+devtools::load_all (".", export_all = FALSE)
+```
+
+
+## 1. `.Rd` files, example code, and the autotest workflow
+
+To understand what `autotest` does, it is first necessary to understand a bit
+about the structure of documentation files for R package, which are contained
+in files called `".Rd"` files. Tests are constructed by parsing individual
+`.Rd` documentation files to extract the example code, identifying parameters
+passed to the specified functions, and mutating those parameters.
+
+The general procedure can be illustrated by examining a specific function, for
+which we now choose the [`cor`
+function](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/cor.html),
+because of its relative simplicity. The following lines extract the
+documentation for the `cor` function, a `.html` version of which can be seen by
+clicking on the link above. Note that that web page reveals the name of the
+`.Rd` file to be "cor" (in the upper left corner), meaning that the name of the
+`.Rd` file is `"cor.Rd"`. The following lines extract that content, first by
+loading the entire `.Rd` database for the [`stats`
+package](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/00Index.html).
+
+```{r cor-rd}
+rd <- tools::Rd_db (package = "stats")
+cor_rd <- rd [[grep ("^cor\\.Rd", names (rd))]]
+```
+
+The database itself is a list, with each entry holding the contents of one
+`.Rd` file in an object of class `r class(cor_rd)`, which is essentially
+a large nested
+list of components corresponding to the various `.Rd` tags such as
+`\arguments`, `\details`, and `\value`. An internal function from the [`tools`
+package](https://stat.ethz.ch/R-manual/R-devel/library/tools/html/00Index.html)
+can be used to extract individual components (retrieved here via
+`utils::getFromNamespace()` rather than the `:::` notation, since the latter
+is generally best avoided outside of interactive use). For example, a single
+`.Rd` file often describes the functionality of several functions, each of
+which is identified by specifying the function name as an `"alias"`. The
+aliases for the `"cor.Rd"` file are:
+
+```{r cor-aliases}
+Rd_get_metadata <- utils::getFromNamespace (".Rd_get_metadata", "tools")
+Rd_get_metadata (cor_rd, "alias")
+```
+
+This one file thus contains documentation for those four functions. Example
+code can be extracted with a dedicated function from the [`tools`
+package](https://stat.ethz.ch/R-manual/R-devel/library/tools/html/Rd2HTML.html):
+
+```{r Rd2ex-dummy, echo = TRUE, eval = FALSE}
+tools::Rd2ex (cor_rd)
+```
+```{r Rd2ex, echo = FALSE, eval = TRUE}
+tools::Rd2ex (cor_rd)
+```
+
+This is the entire content of the `\examples` portion of `"cor.Rd"`, as can be
+confirmed by comparing with the [online
+version](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/cor.html).
+
+## 2. Internal structure of the `autotest` workflow
+
+For each `.Rd` file in a package, `autotest` tests the code given in the
+example section according to the following general steps:
+
+1. Extract example lines from the `.Rd` file, as demonstrated above;
+2. Identify all function `aliases` described by that file;
+3. Identify all points at which those functions are called;
+4. Identify all objects passed to those values, including values, classes,
+   attributes, and other properties.
+5. Identify any other parameters not explicitly passed in example code, but
+   defined via default value;
+6. Mutate the values of all parameters according to the kinds of test described
+   in `autotest_types()`.
+
+Calling `autotest_package(..., test = FALSE)` implements the first 5 of those
+6 steps, and returns data on all possible mutations of each parameter, while
+setting `test = TRUE` actually passes the mutated parameters to the specified
+functions, and returns reports on any unexpected behaviour. 
+
+
+## 3. `autotest`-ing the `stats::cov` function
+
+The preceding sections describe how `autotest` actually works, while the
+present section demonstrates how the package is typically used in practice. As
+demonstrated in the [`README`](https://mpadge.github.io/autotest/), information
+on all tests implemented within the package can be obtained by calling the
+`autotest_types()` function. The main function for testing package is
+`autotest_package()`. The nominated package can be either an installed package,
+or the full path to a local directory containing a package's source code. By
+default all `.Rd` files of a package are tested, with restriction to specified
+functions possible either by nominating functions to exclude from testing (via
+the `exclude` parameter), or functions to include (via the `functions`
+parameter). The `functions` parameter is intended to enable testing only of
+specified functions, while the `exclude` parameter is intended to enable
+testing of all functions except those specified with this parameter. Specifying
+values for both of these parameters is not generally recommended.
+
+### 3.1 Listing tests without conducting them
+
+The following demonstrates the results of `autotest`-ing the [`cor`
+function](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/cor.html) of
+the `stats` package, noting that the default call uses `test = FALSE`, and so
+returns details of all tests without actually implementing them (and for this
+reason we name the object `xf` for "false"):
+
+```{r at-cor-notest-dummy, echo = TRUE, eval = FALSE}
+xf <- autotest_package (package = "stats", functions = "cor")
+print (xf)
+```
+```{r print-x, echo = FALSE, collapse = TRUE}
+xf <- tibble::tibble (
+    type = rep ("dummy", 15L),
+    test_name = c (
+        rep ("single_char_case", 2L),
+        "single_par_as_length_2",
+        "return_successful",
+        "return_val_described",
+        "return_desc_include_class",
+        "return_class_matches_desc",
+        rep (c ("par_is_documented", "par_matches_doc"), 4)
+    ),
+    fn_name = rep ("cor", 15L),
+    parameter = c (
+        rep ("use", 3L),
+        rep ("(return object)", 4L),
+        rep ("x", 2L),
+        rep ("use", 2L),
+        rep ("method", 2L),
+        rep ("y", 2L)
+    ),
+    parameter_type = c (
+        rep ("single_character", 3L),
+        rep ("(return object)", 4L),
+        rep (NA_character_, 8L)
+    ),
+    operation = c (
+        "lower-case character parameter",
+        "upper-case character parameter",
+        "Length 2 vector for length 1 parameter",
+        "Check that function successfully returns an object",
+        "Check that description has return value",
+        "Check whether description of return value specifies class",
+        "Compare class of return value with description",
+        rep (
+            c (
+                "Check that parameter is documented",
+                "Check that documentation matches class of input parameter"
+            ),
+            4L
+        )
+    ),
+    content = c (
+        rep ("(Should yield same result)", 2L),
+        "Should trigger message, warning, or error",
+        rep (NA_character_, 12L)
+    ),
+    test = rep (TRUE, 15L)
+)
+print (xf)
+```
+
+The object returned from `autotest_package()` is a simple
+[`tibble`](https://tibble.tidyverse.org), with each row detailing one test
+which would be applied to the each of the listed functions and parameters.
+Because no tests were conducted, all tests will generally have a `type` of
+`"dummy"`. In this case, however, we see the following:
+
+```{r test-types}
+table (xf$type)
+```
+
+In addition to the `r length (which (xf$type == "dummy"))` dummy tests, the
+function also returns `r length (which (xf$type == "warning"))` warnings, the
+corresponding rows of which are:
+
+```{r test-warnings}
+xf [xf$type != "dummy", c ("fn_name", "parameter", "operation", "content")]
+```
+
+Although the `auotest` package is primarily intended to apply mutation tests to
+all parameters of all functions of a package, doing so requires identifying
+parameter types and classes through parsing example code. Any parameters of
+a function which are neither demonstrated within example code, nor given
+default values can not be tested, because it is not possible to determine their
+expected types. The above result reveals that neither the `use` parameter of
+the `var` function, nor the `y` parameter of `cov`, are demonstrated in example
+code, triggering a warning that these parameter are unable to be tested.
+
+### 3.2 Conducting tests
+
+The `r length (which (xf$type == "dummy"))` tests listed above with `type ==
+"dummy"` can then be applied to all nominated functions and parameters by
+calling the same function with `test = TRUE`. Doing so yields the following
+results (as an object names `xt` for "true"):
+
+```{r at-cor-test-dummy, echo = TRUE, eval = FALSE}
+xt <- autotest_package (
+    package = "stats",
+    functions = "cor",
+    test = TRUE
+)
+print (xt)
+```
+```{r print-xt, echo = FALSE, collapse = TRUE}
+xt1 <- tibble::tibble (
+    type = c (rep ("warning", 4L), "diagnostic"),
+    test_name = c (rep ("par_matches_docs", 4L), "single_char_case"),
+    fn_name = rep ("cor", 5L),
+    parameter = c (rep (c ("x", "y"), 2L), "use"),
+    parameter_type = c (rep (NA_character_, 4L), "single character"),
+    operation = c (
+        rep ("Check that documentation matches class of input parameter", 4L),
+        "upper-case character parameter"
+    ),
+    content = c (
+        rep (
+            "Parameter documentation does not describe class of [integer]",
+            2L
+        ),
+        rep ("Parameter documentation does not describe class of [dist]", 2L),
+        "is case dependent"
+    ),
+    test = rep (TRUE, 5L)
+)
+```
+
+And the `r length (which (xf$type == "dummy"))` tests yielded `r nrow (xt1)`
+unexpected responses. The best way to understand these results is to examine
+the object in detail, typically through `edit(xt)`, or equivalently in RStudio,
+clicking on the listed object. The different types of tests which produced
+unexpected responses were:
+
+```{r xt-operations}
+table (xt1$operation)
+```
+
+Two of those reflect the previous results regarding parameters unable to be
+tested, while the remainder come from only two types of tests. Information on
+the precise results is contained in the `content` column, although in this case
+it is fairly straightforward to see that the operation "upper case character
+parameter" arises because the `use` and `method` parameters of the `cor` and
+`cov` functions are case-dependent, and are only accepted in lower case form.
+The other operation is the conversion of vectors to list-column format, as
+described in the [first
+vignette](https://mpadge.github.io/autotest/articles/autotest.html).
+
+
+### 3.4 Controlling which tests are conducted
+
+The `test` parameter of the `autotest_package()` function can be used to
+control whether all tests are conducted or not. Finer-level control over tests
+can be achieved by specifying the `test_data` parameter. This parameter must be
+an object of class `autotest_package`, as returned by either the
+`autotest_types()` or `autotest_package()` functions. The former of these is
+the function which specifies all unique tests, and so returns a relatively
+small `tibble` of `r nrow(autotest_types())` rows. The following lines
+demonstrate how to switch off the list-column test for all functions and
+parameters:
+
+```{r test_data1-dummy, echo = TRUE, eval = FALSE}
+types <- autotest_types ()
+types$test [grep ("list_col", types$test_name)] <- FALSE
+xt2 <- autotest_package (
+    package = "stats",
+    functions = "cor",
+    test = TRUE,
+    test_data = types
+)
+print (xt2)
+```
+```{r print-xt2, echo = FALSE, eval = TRUE}
+xt2 <- tibble::tibble (
+    type = c (rep ("warning", 4L), "diagnostic"),
+    test_name = c (rep ("par_matches_docs", 4L), "single_char_case"),
+    fn_name = rep ("cor", 5L),
+    parameter = c (rep (c ("x", "y"), 2L), "use"),
+    parameter_type = c (rep (NA_character_, 4L), "single character"),
+    operation = c (
+        rep ("Check that documentation matches class of input parameter", 4L),
+        "upper-case character parameter"
+    ),
+    content = c (
+        rep (
+            "Parameter documentation does not describe class of [integer]",
+            2L
+        ),
+        rep ("Parameter documentation does not describe class of [dist]", 2L),
+        "is case dependent"
+    ),
+    test = rep (TRUE, 5L)
+)
+
+print (xt2)
+```
+
+
+The result now has four rows with `test == FALSE`, and `type == "no_test"`,
+indicating that these tests were not actually conducted. That also makes
+apparent the role of these `test` flags. When initially calling
+`autotest_package()` with default `test = FALSE`, the result contains a `test`
+column in which all values are `TRUE`. Although potentially perplexing at
+first, this value must be understood in relation to the `type` column. A `type`
+of `"dummy"` indicates that a test has not been conducted, in which case `test
+= TRUE` is a control flag used to determine what would be conducted if these
+data were submitted as the `test_data` parameter. For all `type` values other
+than `"dummy"`, the `test` column specifies whether or not each test was
+actually conducted.
+
+The preceding example showed how the results of `autotest_types()` can be used
+to control which tests are implemented for an entire package. Finer-scale
+control can be achieved by modifying individual rows of the full table returned
+by `autotest_package()`. The following code demonstrates by showing how
+list-column tests can be switched off only for particular functions, starting
+again with the `xf` data of dummy tests generated above.
+
+```{r test_data2-fakey, echo = TRUE, eval = FALSE}
+xf <- autotest_package (
+    package = "stats",
+    functions = "cor"
+)
+xf$test [grepl ("list_col", xf$test_name) & xf$fn_name == "var"] <- FALSE
+xt3 <- autotest_package (
+    package = "stats",
+    functions = "cor",
+    test = TRUE,
+    test_data = xf
+)
+print (xt3)
+```
+```{r print-xt3, echo = FALSE, eval = TRUE}
+xt3 <- tibble::tibble (
+    type = c (rep ("warning", 4L), "diagnostic"),
+    test_name = c (rep ("par_matches_docs", 4L), "single_char_case"),
+    fn_name = rep ("cor", 5L),
+    parameter = c (rep (c ("x", "y"), 2L), "use"),
+    parameter_type = c (rep (NA_character_, 4L), "single character"),
+    operation = c (
+        rep ("Check that documentation matches class of input parameter", 4L),
+        "upper-case character parameter"
+    ),
+    content = c (
+        rep (
+            "Parameter documentation does not describe class of [integer]",
+            2L
+        ),
+        rep ("Parameter documentation does not describe class of [dist]", 2L),
+        "is case dependent"
+    ),
+    test = rep (TRUE, 5L)
+)
+print (xt3)
+```
+
+These procedures illustrate the three successively finer levels of control over
+tests, by switching them off for:
+
+1. Entire packages;
+2. Specified functions only; or
+3. Specific parameters of particular functions only.
+
+## 4. `autotest`-ing your package
+
+`autotest` can be very easily incorporated in your package's `tests/` directory
+via to simple [`testthat`](https://testthat.r-lib.org) expectations:
+
+- `expect_autotest_no_testdata`, which will expect `autotest_package` to work
+  on your package with default values including no additional `test_data`
+  specifying tests which are not to be run; or
+- `expect_autotest_testdata`, to be used when specific tests are switched off.
+
+Using these requires adding `autotest` to the `Suggests` list of your package's
+`DESCRIPTION` file, along with `testthat`. Note that the use of testing
+frameworks other than [`testthat`](https://testthat.r-lib.org) is possible
+through writing custom expectations for the output of `autotest_package()`, but
+that is not considered here.
+
+To use these expectations, you must first decide which, if any, tests you judge
+to be not applicable to your package, and switch them off following the
+procedure described above (that is, at the package level through modifying the
+`test` flag of the object returned from `autotest_types()`, or at finer
+function- or parameter-levels by modifying equivalent values in the object
+returned from `autotest_package(..., test = FALSE)`. These objects must then be
+passed as the `test_data` parameter to `autotest_package()`. If you consider
+all tests to be applicable, then `autotest_package()` can be called without
+specifying this parameter.
+
+If you switch tests off via a `test_data` parameter, then the
+`expect_autotest` expectation requires you to append an additional column to
+the `test_data` object called `"note"` (case-insensitive), and include a note
+for each row which has `test = FALSE` explaining why those tests have been
+switched off. Lines in your test directory should look something like this:
+
+```{r testthat-demo-testdata, collapse = TRUE, message = FALSE, echo = TRUE, eval = FALSE}
+library (testthat) # as called in your test suite
+# For example, to switch off vector-to-list-column tests:
+test_data <- autotest_types (notest = "vector_to_list_col")
+test_data$note <- ""
+test_data$note [test_data$test == "vector_to_list_col"] <-
+    "These tests are not applicable because ..."
+expect_success (expect_autotest_testdata (test_data))
+```
+This procedure of requiring an additional `"note"` column ensures that your own
+test suite will explicitly include all explanations of why you deem particular
+tests not to be applicable to your package. 
+
+In contrast, the following expectation should be used when `autotest_package()`
+passes with all tests are implemented, in which case no parameters need be
+passed to the expectation, and tests will confirm that no warnings or errors
+are generated.
+
+```{r testthat-demo-notestdata, collapse = TRUE, echo = TRUE, eval = FALSE}
+expect_success (expect_autotest_no_testdata ())
+```
+
+### 4.2 Finer control over testing expectations
+
+The two expectations shown above call the 
+`autotest_package()` function internally, and assert that the results follow
+the expected pattern. There are also three additional
+[`testthat`](https://testthat.r-lib.org) expectations which can be applied to
+pre-generated `autotest` objects, to allow for finer control over testing
+expectations. These are:
+
+- `expect_autotest_no_err` to expect no errors in results from `autotest_package()`;
+- `expect_autotest_no_warn` to expect no warnings; and
+- `expect_autotest_notes` to expect tests which have been switched off to have
+  an additional `"note"` column explaining why.
+
+These tests are demonstrated in one of the testing files used in this package,
+which the following lines recreate to demonstrate the general process. The
+first two expectations are that an object be free from both warnings and
+errors. The tests implemented here are applied to the 
+[`stats::cov()`
+function](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/cor.html),
+which actually triggers warnings because two parameters do not have their usage
+demonstrated in the example code. The tests therefore `expect_failure()`, when
+they generally should `expect_success()` throughout.
+
+```{r testthat-no-err-warn-fakey, collapse = TRUE, echo = TRUE, eval = FALSE}
+library (testthat) # as called in your test suite
+# For example, to switch off vector-to-list-column tests:
+test_data <- autotest_types (notest = "vector_to_list_col")
+x <- autotest_package (
+    package = "stats",
+    functions = "cov",
+    test = TRUE,
+    test_data = test_data
+)
+
+expect_success (expect_autotest_no_err (x))
+expect_failure (expect_autotest_no_warn (x)) # should expect_success!!
+```
+```{r testthat-no-err-warn, collapse = TRUE, echo = FALSE, eval = TRUE}
+library (testthat) # as called in your test suite
+# switch off vector-to-list-column tests:
+test_data <- autotest_types (notest = "vector_to_list_col")
+x <- tibble::tibble (
+    type = c (rep ("warning", 2L), rep ("diagnostic", 20L)),
+    test_name = c (
+        rep ("par_is_demonstrated", 2L),
+        "single_int_for_logical",
+        rep ("single_char_case", 2L),
+        rep ("vector_custom_class", 2L),
+        rep ("single_char_case", 15L)
+    ),
+    fn_name = c ("var", "cov", "var", rep ("cor", 19L)),
+    parameter = rep (
+        c (
+            "use", "y", "na.rm", "use", "method", "x", "x", "method", "use",
+            "use", "use"
+        ),
+        2L
+    ),
+    parameter_type = c (
+        rep (NA_character_, 2L),
+        "single logical",
+        rep ("single character", 2L),
+        rep ("vector", 2L),
+        rep ("single character", 15L)
+    ),
+    operation = c (
+        rep ("Check that parameter usage is demonstrated", 2L),
+        "Substitute integer values for logical parameter",
+        rep ("upper-case character parameter", 2L),
+        rep ("Custom class definitions for vector input", 2L),
+        rep ("upper-case character parameter", 4L),
+        "Custom class definitions for vector input",
+        rep ("upper-case character parameter", 6L),
+        "Custom class definitions for vector input",
+        rep ("upper-case character parameter", 2L),
+        "Custom class definitions for vector input"
+    ),
+    content = c (
+        rep ("Examples do not demonstrate usage of this parameter", 2L),
+        "(Function call should still work unless explicitly prevented)",
+        rep ("is case dependent", 2L),
+        rep (
+            "Function [cor] errors on vector columns with different classes",
+            2L
+        ),
+        rep ("is case dependent", 4L),
+        "Function [cov] errors on vector columns with different classes",
+        rep ("is case dependent", 6L),
+        "Function [cor] errors on vector columns with different classes",
+        rep ("is case dependent", 2L),
+        "Function [cor] errors on vector columns with different classes"
+    ),
+    test = rep (TRUE, 22L)
+)
+
+
+expect_success (expect_autotest_no_err (x))
+expect_failure (expect_autotest_no_warn (x)) # should expect_success!!
+```
+
+The test files then affirms that simply passing the object, `x`, which has
+tests flagged as `type == "no_test"`,  yet without explaining why in an
+additional `"note"` column, should cause `expect_autotest()` to fail. The
+following line, removing the logical `testthat` expectation, demonstrates:
+
+```{r testthat-demo-fail-fakey, echo = TRUE, eval = FALSE}
+expect_autotest_notes (x)
+```
+
+As demonstrated above, these `expect_autotest_...` calls should always be
 wrapped in a direct [`testhat`](https://testthat.r-lib.org) expectation of
 [`expect_success()`](https://testthat.r-lib.org/reference/expect_success.html).
 To achieve success in that case, we need to append an additional `"note"`
