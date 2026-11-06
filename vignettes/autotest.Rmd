@@ -109,12 +109,11 @@ DT::datatable (x0, options = list (dom = "t")) # display table only
 ```
 
 The first thing to notice is the first column, which has `test_type = "dummy"`
-for all rows. The [`autotest_package()`
-function](https://docs.ropensci.org/autotest/reference/autotest_package.html)
-has a parameter `test` with a default value of `FALSE`, so that the default
-call demonstrated above does not actually implement the tests, rather it
-returns an object listing all tests that would be performed with actually doing
-so. Applying the tests by setting `test = TRUE` gives the following result.
+for all rows. The `autotest_package()` function has a parameter `test` with a
+default value of `FALSE`, so that the default call demonstrated above does not
+actually implement the tests, rather it returns an object listing all tests
+that would be performed with actually doing so. Applying the tests by setting
+`test = TRUE` gives the following result.
 
 ```{r autotest-TRUE}
 x1 <- autotest_package (path, test = TRUE)
