@@ -1,4 +1,4 @@
-# autotest <a href='https://docs.ropensci.org/autotest/'><img src='man/figures/autotest.png' align="right" height=210 width=182></a>
+# autotest <a href='https://mpadge.github.io/autotest/'><img src='man/figures/autotest.png' align="right" height=210 width=182></a>
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -28,18 +28,18 @@ can be installed with
 install.packages ("autotest")
 ```
 
-The current development version can be installed by first enabling
-[`r-universe`](https://mpadge-universe.dev/) with
+The current development version can be installed from
+[`r-universe`](https://mpadge-universe.dev/) with:
 
 ``` r
-options (repos = c (
-    ropenscireviewtools = "https://mpadge-universe.dev",
-    CRAN = "https://cloud.r-project.org"
-))
+install.packages (
+    "autotest",
+    repos = c ("https://mpadge.r-universe.dev", "https://cloud.r-project.org")
+)
 ```
 
-And then calling `install.packages()`. The package can also be installed
-from many other remote locations using any one of the following lines:
+The package can also be installed from many other remote locations using
+any one of the following lines:
 
 ``` r
 # install.packages("remotes")
@@ -64,25 +64,22 @@ The simply way to use the package is
 x <- autotest_package ("<package>")
 ```
 
-The main argument to the [`autotest_package()`
-function](https://docs.ropensci.org/autotest/reference/autotest_package.html)
-can either be the name of an installed package, or a path to a local
-directory containing the source for a package. The result is a
-`data.frame` of errors, warnings, and other diagnostic messages issued
-during package `autotest`-ing. The function has an additional parameter,
-`functions`, to restrict tests to specified functions only.
+The main argument to the `autotest_package()` function can either be the
+name of an installed package, or a path to a local directory containing
+the source for a package. The result is a `data.frame` of errors,
+warnings, and other diagnostic messages issued during package
+`autotest`-ing. The function has an additional parameter, `functions`,
+to restrict tests to specified functions only.
 
-By default,
-[`autotest_package()`](https://docs.ropensci.org/autotest/reference/autotest_package.html)
-returns a list of all tests applied to a package without actually
-running them. To implement those tests, set the parameter `test` to
-`TRUE`. Results are only returned for tests in which functions do not
-behave as expected, whether through triggering errors, warnings, or
-other behaviour as described below. The ideal behaviour of
-`autotest_package()` is to return nothing (or strictly, `NULL`),
-indicating that all tests passed successfully. See the [main package
-vignette](https://docs.ropensci.org/autotest/articles/autotest.html) for
-an introductory tour of the package.
+By default, `autotest_package()` returns a list of all tests applied to
+a package without actually running them. To implement those tests, set
+the parameter `test` to `TRUE`. Results are only returned for tests in
+which functions do not behave as expected, whether through triggering
+errors, warnings, or other behaviour as described below. The ideal
+behaviour of `autotest_package()` is to return nothing (or strictly,
+`NULL`), indicating that all tests passed successfully. See the [main
+package vignette](https://mpadge/autotest/articles/autotest.html) for an
+introductory tour of the package.
 
 ## What is tested?
 
@@ -108,13 +105,12 @@ autotest_types ()
 ```
 
 That functions returns a [`tibble`](https://tibble.tidyverse.org)
-describing 27 unique tests. The default behaviour of
-[`autotest_package()`](https://docs.ropensci.org/autotest/reference/autotest_package.html)
-with `test = FALSE` uses these test types to identify which tests will
-be applied to each parameter and function. The table returned from
-[`autotest_types()`](https://docs.ropensci.org/autotest/reference/autotest_types.html)
-can be used to selectively switch tests off by setting values in the
-`test` column to `FALSE`, as demonstrated below.
+describing `r nrow(autotest_types())` unique tests. The default
+behaviour of `autotest_package()` with `test = FALSE` uses these test
+types to identify which tests will be applied to each parameter and
+function. The table returned from `autotest_types()` can be used to
+selectively switch tests off by setting values in the `test` column to
+`FALSE`, as demonstrated below.
 
 ## How Does It Work?
 
@@ -171,10 +167,10 @@ print (y)
 #>  3 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE 
 #>  4 diagnostic subst_in… var     na.rm     single logical Substitu… "(Func… TRUE 
 #>  5 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE 
-#>  6 diagnostic vector_t… var     y         vector         Convert … "Funct… TRUE 
+#>  6 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE 
 #>  7 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE 
 #>  8 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE 
-#>  9 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE 
+#>  9 diagnostic vector_t… var     y         vector         Convert … "Funct… TRUE 
 #> 10 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE 
 #> 11 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE
 ```
@@ -231,12 +227,6 @@ rather than the previous “diagnostic”.
 3.  [`mutate`](https://github.com/mbj/mutant) for ruby
 4.  [`mutant`](https://github.com/sckott/mutant) for mutation of R code
     itself
-
-## Code of Conduct
-
-Please note that this package is released with a [Contributor Code of
-Conduct](https://ropensci.org/code-of-conduct/). By contributing to this
-project, you agree to abide by its terms.
 
 ## Contributors
 
