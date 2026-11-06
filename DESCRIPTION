@@ -13,9 +13,9 @@ Description: Automatic testing of R packages by tracing function calls made
     authors submitting to the 'rOpenSci' statistical software review
     project ('rOpenSci' authors, 2021; <doi:10.5281/zenodo.5556756>).
 License: GPL-3
-URL: https://docs.ropensci.org/autotest/,
-    https://github.com/ropensci-review-tools/autotest
-BugReports: https://github.com/ropensci-review-tools/autotest/issues
+URL: https://mpadge.github.io/autotest/,
+    https://github.com/mpadge/autotest
+BugReports: https://github.com/mpadge/autotest/issues
 Imports:
     checkmate,
     cli,
@@ -49,4 +49,4 @@ Language: en-GB
 LazyData: true
 Roxygen: list(markdown = TRUE)
 Config/ropensci/maintainer: staff
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1

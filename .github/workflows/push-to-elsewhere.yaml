@@ -33,9 +33,9 @@ jobs:
       run: |
           git config --global user.name "ropensci"
           git config --global user.email "noreply@ropensci.org"
-          git clone https://github.com/ropensci-review-tools/autotest.git
+          git clone https://github.com/mpadge/autotest.git
           git fetch --unshallow origin
-          git remote add codeberg https://${{secrets.UNAME}}:${{secrets.CODEBERG}}@codeberg.org/ropensci-review-tools/autotest.git
+          git remote add codeberg https://${{secrets.UNAME}}:${{secrets.CODEBERG}}@codeberg.org/mpadge/autotest.git
           git push --tags codeberg main
-          git remote add codefloe https://${{secrets.UNAME}}:${{secrets.CODEFLOE}}@codefloe.com/ropensci-review-tools/autotest.git
+          git remote add codefloe https://${{secrets.UNAME}}:${{secrets.CODEFLOE}}@codefloe.com/mpadge/autotest.git
           git push --tags codefloe main
