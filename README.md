@@ -136,7 +136,7 @@ print (x)
 #>    <chr>   <chr>        <chr>   <chr>     <chr>          <chr>     <chr>   <lgl>
 #>  1 warning par_is_demo… var     na.rm     <NA>           Check th… Exampl… TRUE 
 #>  2 warning par_is_demo… var     use       <NA>           Check th… Exampl… TRUE 
-#>  3 dummy   trivial_noi… var     x         numeric        Add triv… (Shoul… TRUE 
+#>  3 dummy   int_as_nume… var     x         integer vector Integer … (Shoul… TRUE 
 #>  4 dummy   vector_to_l… var     x         vector         Convert … (Shoul… TRUE 
 #>  5 dummy   negate_logi… var     na.rm     single logical Negate d… (Funct… TRUE 
 #>  6 dummy   subst_int_f… var     na.rm     single logical Substitu… (Funct… TRUE 
@@ -165,12 +165,12 @@ print (y)
 #>  1 warning    par_is_d… var     na.rm     <NA>           Check th… "Examp… TRUE 
 #>  2 warning    par_is_d… var     use       <NA>           Check th… "Examp… TRUE 
 #>  3 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE 
-#>  4 diagnostic subst_in… var     na.rm     single logical Substitu… "(Func… TRUE 
-#>  5 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE 
+#>  4 diagnostic vector_t… var     y         vector         Convert … "Funct… TRUE 
+#>  5 diagnostic subst_in… var     na.rm     single logical Substitu… "(Func… TRUE 
 #>  6 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE 
 #>  7 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE 
 #>  8 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE 
-#>  9 diagnostic vector_t… var     y         vector         Convert … "Funct… TRUE 
+#>  9 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE 
 #> 10 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE 
 #> 11 diagnostic vector_t… var     x         vector         Convert … "Funct… TRUE
 ```

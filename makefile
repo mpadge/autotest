@@ -1,4 +1,4 @@
-LFILE = README
+RFILE = README
 VIGNETTE = autotest
 
 all: help
@@ -18,11 +18,11 @@ pkgdowncheck: ## Check 'pkgdown' site structure
 vignette: ## Build pkgdown article
 	echo "pkgdown::build_article('$(VIGNETTE)',quiet=FALSE)" | R --no-save -q
 
-knith: $(LFILE).Rmd ## Render README as HTML
-	echo "rmarkdown::render('$(LFILE).Rmd',output_file='$(LFILE).html')" | R --no-save -q
+knith: $(RFILE)-src.Rmd ## Render README as HTML
+	echo "rmarkdown::render('$(RFILE)-src.Rmd',output_file='$(RFILE).html')" | R --no-save -q
 
-knitr: $(LFILE).Rmd ## Render README as markdown
-	echo "rmarkdown::render('$(LFILE).Rmd',output_file='$(LFILE).md')" | R --no-save -q
+knitr: $(RFILE)-src.Rmd ## Render README as markdown
+	echo "rmarkdown::render('$(RFILE)-src.Rmd',output_file='$(RFILE).md')" | R --no-save -q
 
 open: ## Open main HTML vignette in browser
 	xdg-open docs/articles/$(VIGNETTE).html &
